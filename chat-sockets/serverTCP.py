@@ -30,8 +30,7 @@ def handle_client(client):
 
 def broadcast(message, sender):
     for client in clients:
-        if client != sender:
-            client.sendall(message)
+        client.sendall(message)
 
 
 clients = []

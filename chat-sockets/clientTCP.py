@@ -1,6 +1,8 @@
 import socket
 import argparse
 import threading
+import tkinter
+from functools import partial
 
 # Referências
 # https://www.dio.me/articles/faca-o-seu-proprio-chat-utilizando-python-atraves-de-sockets
@@ -11,26 +13,47 @@ def main(host, port):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
         client.connect((host, port))
 
-        thread_send = threading.Thread(target=send_messages, args=(client,))
-        thread_recv = threading.Thread(target=recv_messages, args=(client,))
+        entry_field = tkinter.Entry(window, textvariable=input)
+        entry_field.bind("<Return>", partial(send_message, client))
+        entry_field.pack()
+        send_button = tkinter.Button(
+            window, text="Enviar", command=partial(send_message, client)
+        )
+        send_button.pack()
 
-        thread_send.start()
-        thread_recv.start()
+        threading.Thread(target=recv_messages, args=(client,)).start()
 
-        thread_send.join()
-        thread_recv.join()
-
-
-def send_messages(client):
-    while True:
-        message = input("\nMensagem: ")
-        client.sendall(message.encode())
+        tkinter.mainloop()
 
 
 def recv_messages(client):
     while True:
         message = client.recv(BUFSIZE)
-        print(message.decode())
+        messages.insert(tkinter.END, message.decode())
+
+
+def send_message(client, event=None):
+    message = input.get()
+    input.set("")
+    client.sendall(message.encode())
+
+
+window = tkinter.Tk()
+window.title("Chat")
+
+messages_frame = tkinter.Frame(window)
+messages_frame.pack()
+
+input = tkinter.StringVar()
+
+scrollbar = tkinter.Scrollbar(messages_frame)
+scrollbar.pack(side=tkinter.RIGHT, fill=tkinter.Y)
+
+messages = tkinter.Listbox(
+    messages_frame, height=15, width=50, yscrollcommand=scrollbar.set
+)
+messages.pack(side=tkinter.LEFT, fill=tkinter.BOTH)
+messages.pack()
 
 
 HOST = "127.0.0.1"
