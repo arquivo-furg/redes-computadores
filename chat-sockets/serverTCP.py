@@ -1,6 +1,6 @@
 import argparse
 import threading
-from socket import socket, AF_INET, SOCK_STREAM
+from socket import socket, AF_INET, SOCK_STREAM, gethostname, gethostbyname
 
 # Referências
 # https://www.dio.me/articles/faca-o-seu-proprio-chat-utilizando-python-atraves-de-sockets
@@ -8,11 +8,15 @@ from socket import socket, AF_INET, SOCK_STREAM
 
 
 def main(host: str, port: int):
+    hostname = gethostname()
+    hostaddr = gethostbyname(hostname)
+
     with socket(AF_INET, SOCK_STREAM) as server:
         try:
             server.bind((host, port))
             server.listen()
-            print(f"Servidor TCP escutando em {host}:{port}...")
+            print(f"Servidor TCP escutando localmente em {host}:{port}...")
+            print(f"Endereço de rede do servidor: {hostaddr}:{port}")
         except:
             return print(f"Não foi possível iniciar o servidor em {host}:{port}.")
 
