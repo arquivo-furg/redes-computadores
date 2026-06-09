@@ -9,21 +9,34 @@ import threading
 
 def main(host, port):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
-        server.bind((host, port))
-        server.listen()
-        print(f"Servidor TCP escutando em {host}:{port}...")
+        try:
+            server.bind((host, port))
+            server.listen()
+            print(f"Servidor TCP escutando em {host}:{port}...")
+        except:
+            return print(f"Não foi possível iniciar o servidor em {host}:{port}.")
 
         while True:
-            client, addr = server.accept()
-            print("%s:%s concetou-se ao servidor." % addr)
+            try:
+                client, addr = server.accept()
+                print("%s:%s concetou-se ao servidor." % addr)
 
-            thread = threading.Thread(target=handle_client, args=(client,))
-            thread.start()
+                threading.Thread(target=handle_client, args=(client, addr)).start()
+            except KeyboardInterrupt:
+                print("\nEncerrando o servidor de chat...")
+                break
+    print("Servidor encerrado.")
 
 
-def handle_client(client):
+def handle_client(client, addr):
     username = get_username(client)
+
     while True:
+        if username == "/quit":
+            client.sendall(b"/quit")
+            client.close()
+            break
+
         data = client.recv(BUFSIZE).decode()
 
         if data == "/quit":
@@ -32,6 +45,8 @@ def handle_client(client):
 
         message = f"<{username}> {data}"
         broadcast(message.encode())
+
+    print("%s:%s desconcetou-se do servidor." % addr)
 
 
 def broadcast(message, sender=None):
@@ -48,6 +63,9 @@ def get_username(client):
         message = f"<SERVIDOR> Username {username} em uso. Tente novamente:"
         client.sendall(message.encode())
         username = client.recv(BUFSIZE).decode()
+
+    if username == "/quit":
+        return username
 
     add_user(client, username)
 

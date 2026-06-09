@@ -11,7 +11,10 @@ from functools import partial
 
 def main(host, port):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
-        client.connect((host, port))
+        try:
+            client.connect((host, port))
+        except:
+            return print(f"Não foi possível conectar-se a {host}:{port}.")
 
         entry_field = tkinter.Entry(window, textvariable=input)
         entry_field.bind("<Return>", partial(send_message, client))
