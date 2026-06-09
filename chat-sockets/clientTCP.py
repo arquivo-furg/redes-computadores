@@ -1,7 +1,7 @@
-import socket
 import argparse
 import threading
 import tkinter as tk
+from socket import socket, AF_INET, SOCK_STREAM
 from functools import partial
 
 # Referências
@@ -10,7 +10,7 @@ from functools import partial
 
 
 def main(host, port):
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
+    with socket(AF_INET, SOCK_STREAM) as client:
         try:
             client.connect((host, port))
         except:
@@ -29,7 +29,7 @@ def main(host, port):
         tk.mainloop()
 
 
-def recv_messages(client):
+def recv_messages(client: socket):
     while True:
         try:
             message = client.recv(BUFSIZE).decode()
@@ -43,18 +43,18 @@ def recv_messages(client):
             break
 
 
-def send_message(client, event=None):
+def send_message(client: socket, event=None):
     message = input.get()
     input.set("")
     client.sendall(message.encode())
 
 
-def close(client):
+def close(client: socket):
     client.close()
     window.quit()
 
 
-def on_closing(client, event=None):
+def on_closing(client: socket, event=None):
     input.set("/quit")
     send_message(client)
 
