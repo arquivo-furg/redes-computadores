@@ -85,6 +85,9 @@ def add_user(client: socket, username: str):
     message = f"<SERVIDOR> {username} conectou-se ao chat."
     broadcast(message.encode(), client)
 
+    command = f"/add {username}"
+    broadcast(command.encode())
+
 
 def rem_user(client: socket, username: str):
     client.sendall(b"/quit")
@@ -94,6 +97,9 @@ def rem_user(client: socket, username: str):
 
     message = f"<SERVIDOR> {username} deixou o chat."
     broadcast(message.encode())
+
+    command = f"/remove {username}"
+    broadcast(command.encode())
 
 
 clients: dict[socket, str] = {}

@@ -41,6 +41,14 @@ def recv_messages(client: socket):
                 close(client)
                 break
 
+            if message.startswith("/add"):
+                username = message.split(" ")[1]
+                add_user(username)
+
+            if message.startswith("/remove"):
+                username = message.split(" ")[1]
+                rem_user(username)
+
             messages.insert(tk.END, message)
         except OSError:
             break
@@ -60,6 +68,22 @@ def close(client: socket):
 def on_closing(client: socket, event=None):
     input.set("/quit")
     send_message(client)
+
+
+def add_user(username: str):
+    chats.add(username)
+    update_chats()
+
+
+def rem_user(username: str):
+    chats.remove(username)
+    update_chats()
+
+
+def update_chats():
+    chat_list.delete(0, tk.END)
+    for chat in chats:
+        chat_list.insert(tk.END, chat)
 
 
 window = tk.Tk()
@@ -85,6 +109,8 @@ scrollbar.config(command=messages.yview)
 input_frame = tk.Frame(window)
 input_frame.pack(pady=5)
 input = tk.StringVar()
+
+chats: set[str] = set()
 
 HOST = "127.0.0.1"
 PORT = 12345
