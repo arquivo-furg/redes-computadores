@@ -1,6 +1,6 @@
 import argparse
 import threading
-from socket import socket, AF_INET, SOCK_STREAM, _RetAddress
+from socket import socket, AF_INET, SOCK_STREAM
 
 # Referências
 # https://www.dio.me/articles/faca-o-seu-proprio-chat-utilizando-python-atraves-de-sockets
@@ -28,7 +28,7 @@ def main(host: str, port: int):
     print("Servidor encerrado.")
 
 
-def handle_client(client: socket, addr: _RetAddress):
+def handle_client(client: socket, addr):
     username = get_username(client)
 
     while True:
