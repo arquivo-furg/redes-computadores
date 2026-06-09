@@ -16,14 +16,11 @@ def main(host: str, port: int):
         except:
             return print(f"Não foi possível conectar-se a {host}:{port}.")
 
-        field = tk.Entry(input_frame, textvariable=input, width=40)
+        field = tk.Entry(window, textvariable=input)
         field.bind("<Return>", partial(send_message, client))
-        field.pack(side=tk.LEFT, padx=(0, 5))
-
-        send = tk.Button(
-            input_frame, text="Enviar", command=partial(send_message, client)
-        )
-        send.pack(side=tk.LEFT)
+        field.pack()
+        send = tk.Button(window, text="Enviar", command=partial(send_message, client))
+        send.pack()
 
         window.protocol("WM_DELETE_WINDOW", partial(on_closing, client))
 
@@ -40,14 +37,6 @@ def recv_messages(client: socket):
             if message == "/quit":
                 close(client)
                 break
-
-            if message.startswith("/add"):
-                username = message.split(" ")[1]
-                add_user(username)
-
-            if message.startswith("/remove"):
-                username = message.split(" ")[1]
-                rem_user(username)
 
             messages.insert(tk.END, message)
         except OSError:
@@ -70,47 +59,21 @@ def on_closing(client: socket, event=None):
     send_message(client)
 
 
-def add_user(username: str):
-    chats.add(username)
-    update_chats()
-
-
-def rem_user(username: str):
-    chats.remove(username)
-    update_chats()
-
-
-def update_chats():
-    chat_list.delete(0, tk.END)
-    for chat in chats:
-        chat_list.insert(tk.END, chat)
-
-
 window = tk.Tk()
 window.title("Chat")
-window.geometry("600x400")
 
-panel = tk.PanedWindow(window, orient=tk.HORIZONTAL)
-panel.pack(fill=tk.BOTH, expand=True)
+messages_frame = tk.Frame(window)
+messages_frame.pack()
 
-chats_frame = tk.Frame(panel, bg="lightgray", width=200)
-panel.add(chats_frame)
-chat_list = tk.Listbox(chats_frame)
-chat_list.pack(fill=tk.BOTH, expand=True)
-
-messages_frame = tk.Frame(panel)
-panel.add(messages_frame)
-scrollbar = tk.Scrollbar(messages_frame)
-scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-messages = tk.Listbox(messages_frame, yscrollcommand=scrollbar.set)
-messages.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-scrollbar.config(command=messages.yview)
-
-input_frame = tk.Frame(window)
-input_frame.pack(pady=5)
 input = tk.StringVar()
 
-chats: set[str] = set()
+scrollbar = tk.Scrollbar(messages_frame)
+scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+messages = tk.Listbox(messages_frame, height=20, width=75, yscrollcommand=scrollbar.set)
+messages.pack(side=tk.LEFT, fill=tk.BOTH)
+messages.pack()
+
 
 HOST = "127.0.0.1"
 PORT = 12345
