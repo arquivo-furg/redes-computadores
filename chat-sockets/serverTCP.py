@@ -25,6 +25,11 @@ def handle_client(client):
     username = get_username(client)
     while True:
         data = client.recv(BUFSIZE).decode()
+
+        if data == "/quit":
+            rem_user(client, username)
+            break
+
         message = f"<{username}> {data}"
         broadcast(message.encode())
 
@@ -52,11 +57,21 @@ def get_username(client):
 def add_user(client, username):
     clients[client] = username
 
-    greet = f"<SERVIDOR> Olá {username}! Você conectou-se com sucesso!"
+    greet = f"<SERVIDOR> Olá {username}! Você conectou-se com sucesso! Para sair, digite /quit ou feche a janela."
     client.sendall(greet.encode())
 
     message = f"<SERVIDOR> {username} conectou-se ao chat."
     broadcast(message.encode(), client)
+
+
+def rem_user(client, username):
+    client.sendall(b"/quit")
+    client.close()
+
+    del clients[client]
+
+    message = f"<SERVIDOR> {username} deixou o chat."
+    broadcast(message.encode())
 
 
 clients = dict()

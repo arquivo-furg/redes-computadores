@@ -21,6 +21,8 @@ def main(host, port):
         )
         send_button.pack()
 
+        window.protocol("WM_DELETE_WINDOW", partial(on_closing, client))
+
         threading.Thread(target=recv_messages, args=(client,)).start()
 
         tkinter.mainloop()
@@ -28,14 +30,32 @@ def main(host, port):
 
 def recv_messages(client):
     while True:
-        message = client.recv(BUFSIZE)
-        messages.insert(tkinter.END, message.decode())
+        try:
+            message = client.recv(BUFSIZE).decode()
+
+            if message == "/quit":
+                close(client)
+                break
+
+            messages.insert(tkinter.END, message)
+        except OSError:
+            break
 
 
 def send_message(client, event=None):
     message = input.get()
     input.set("")
     client.sendall(message.encode())
+
+
+def close(client):
+    client.close()
+    window.quit()
+
+
+def on_closing(client, event=None):
+    input.set("/quit")
+    send_message(client)
 
 
 window = tkinter.Tk()
