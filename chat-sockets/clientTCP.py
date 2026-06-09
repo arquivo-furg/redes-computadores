@@ -11,8 +11,8 @@ def main(host, port):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
         client.connect((host, port))
 
-        thread_send = threading.Thread(target=sendMessages, args=(client,))
-        thread_recv = threading.Thread(target=recvMessages, args=(client,))
+        thread_send = threading.Thread(target=send_messages, args=(client,))
+        thread_recv = threading.Thread(target=recv_messages, args=(client,))
 
         thread_send.start()
         thread_recv.start()
@@ -21,13 +21,13 @@ def main(host, port):
         thread_recv.join()
 
 
-def sendMessages(client):
+def send_messages(client):
     while True:
         message = input("\nMensagem: ")
         client.sendall(message.encode())
 
 
-def recvMessages(client):
+def recv_messages(client):
     while True:
         message = client.recv(BUFSIZE)
         print(message.decode())
