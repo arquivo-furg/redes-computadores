@@ -1,16 +1,34 @@
 import socket
 import argparse
+import threading
+
+# Referência: https://www.dio.me/articles/faca-o-seu-proprio-chat-utilizando-python-atraves-de-sockets
 
 
-def client(host, port):
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.connect((host, port))
+def main(host, port):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
+        client.connect((host, port))
 
-        while True:
-            message = input("Mensagem: ")
-            s.sendall(message.encode())
-            data = s.recv(1024)
-            print(f"Resposta do servidor: {data.decode()}")
+        thread_send = threading.Thread(target=sendMessages, args=(client,))
+        thread_recv = threading.Thread(target=recvMessages, args=(client,))
+
+        thread_send.start()
+        thread_recv.start()
+
+        thread_send.join()
+        thread_recv.join()
+
+
+def sendMessages(client):
+    while True:
+        message = input("\nMensagem: ")
+        client.sendall(message.encode())
+
+
+def recvMessages(client):
+    while True:
+        message = client.recv(2048)
+        print(message.decode())
 
 
 if __name__ == "__main__":
@@ -20,4 +38,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    client(**vars(args))
+    main(**vars(args))
