@@ -9,7 +9,7 @@ from functools import partial
 # https://medium.com/swlh/lets-write-a-chat-app-in-python-f6783a9ac170
 
 
-def main(host, port):
+def main(host: str, port: int):
     with socket(AF_INET, SOCK_STREAM) as client:
         try:
             client.connect((host, port))

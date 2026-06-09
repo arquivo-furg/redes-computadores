@@ -1,14 +1,14 @@
-import socket
 import argparse
 import threading
+from socket import socket, AF_INET, SOCK_STREAM, _RetAddress
 
 # Referências
 # https://www.dio.me/articles/faca-o-seu-proprio-chat-utilizando-python-atraves-de-sockets
 # https://medium.com/swlh/lets-write-a-chat-app-in-python-f6783a9ac170
 
 
-def main(host, port):
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
+def main(host: str, port: int):
+    with socket(AF_INET, SOCK_STREAM) as server:
         try:
             server.bind((host, port))
             server.listen()
@@ -28,7 +28,7 @@ def main(host, port):
     print("Servidor encerrado.")
 
 
-def handle_client(client, addr):
+def handle_client(client: socket, addr: _RetAddress):
     username = get_username(client)
 
     while True:
@@ -49,13 +49,13 @@ def handle_client(client, addr):
     print("%s:%s desconcetou-se do servidor." % addr)
 
 
-def broadcast(message, sender=None):
+def broadcast(message: bytes, sender: socket | None = None):
     for client in clients:
         if client != sender:
             client.sendall(message)
 
 
-def get_username(client):
+def get_username(client: socket):
     client.sendall(b"<SERVIDOR> Bem-vindo ao chat. Insira um username para continuar:")
     username = client.recv(BUFSIZE).decode()
 
@@ -72,7 +72,7 @@ def get_username(client):
     return username
 
 
-def add_user(client, username):
+def add_user(client: socket, username: str):
     clients[client] = username
 
     greet = f"<SERVIDOR> Olá {username}! Para sair, digite /quit ou feche a janela."
@@ -82,7 +82,7 @@ def add_user(client, username):
     broadcast(message.encode(), client)
 
 
-def rem_user(client, username):
+def rem_user(client: socket, username: str):
     client.sendall(b"/quit")
     client.close()
 
@@ -92,7 +92,7 @@ def rem_user(client, username):
     broadcast(message.encode())
 
 
-clients = dict()
+clients: dict[socket, str] = {}
 
 HOST = "127.0.0.1"
 PORT = 12345
