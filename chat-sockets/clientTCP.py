@@ -2,7 +2,9 @@ import socket
 import argparse
 import threading
 
-# Referência: https://www.dio.me/articles/faca-o-seu-proprio-chat-utilizando-python-atraves-de-sockets
+# Referências
+# https://www.dio.me/articles/faca-o-seu-proprio-chat-utilizando-python-atraves-de-sockets
+# https://medium.com/swlh/lets-write-a-chat-app-in-python-f6783a9ac170
 
 
 def main(host, port):
@@ -27,14 +29,18 @@ def sendMessages(client):
 
 def recvMessages(client):
     while True:
-        message = client.recv(2048)
+        message = client.recv(BUFSIZE)
         print(message.decode())
 
 
+HOST = "127.0.0.1"
+PORT = 12345
+BUFSIZE = 2048
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--host", type=str, default="127.0.0.1")
-    parser.add_argument("-p", "--port", type=int, default=12345)
+    parser.add_argument("--host", type=str, default=HOST)
+    parser.add_argument("-p", "--port", type=int, default=PORT)
 
     args = parser.parse_args()
 
