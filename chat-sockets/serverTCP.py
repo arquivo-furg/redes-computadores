@@ -15,25 +15,51 @@ def main(host, port):
 
         while True:
             client, addr = server.accept()
-            clients.append(client)
-            print(f"Conectado por {addr}")
+            print("%s:%s concetou-se ao servidor." % addr)
 
             thread = threading.Thread(target=handle_client, args=(client,))
             thread.start()
 
 
 def handle_client(client):
+    username = get_username(client)
     while True:
-        message = client.recv(BUFSIZE)
-        broadcast(message, client)
+        data = client.recv(BUFSIZE).decode()
+        message = f"<{username}> {data}"
+        broadcast(message.encode())
 
 
-def broadcast(message, sender):
+def broadcast(message, sender=None):
     for client in clients:
-        client.sendall(message)
+        if client != sender:
+            client.sendall(message)
 
 
-clients = []
+def get_username(client):
+    client.sendall(b"<SERVIDOR> Bem-vindo ao chat. Insira um username para continuar:")
+    username = client.recv(BUFSIZE).decode()
+
+    while username in clients.values():
+        message = f"<SERVIDOR> Username {username} em uso. Tente novamente:"
+        client.sendall(message.encode())
+        username = client.recv(BUFSIZE).decode()
+
+    add_user(client, username)
+
+    return username
+
+
+def add_user(client, username):
+    clients[client] = username
+
+    greet = f"<SERVIDOR> Olá {username}! Você conectou-se com sucesso!"
+    client.sendall(greet.encode())
+
+    message = f"<SERVIDOR> {username} conectou-se ao chat."
+    broadcast(message.encode(), client)
+
+
+clients = dict()
 
 HOST = "127.0.0.1"
 PORT = 12345
