@@ -12,8 +12,8 @@ def client(host, port):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--host", type=str, required=True)
-    parser.add_argument("-p", "--port", type=int, required=True)
+    parser.add_argument("--host", type=str, default="127.0.0.1")
+    parser.add_argument("-p", "--port", type=int, default=12345)
 
     args = parser.parse_args()
 
