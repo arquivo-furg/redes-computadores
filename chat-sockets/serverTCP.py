@@ -18,17 +18,17 @@ def main(host, port):
             clients.append(client)
             print(f"Conectado por {addr}")
 
-            thread = threading.Thread(target=handleMessages, args=(client,))
+            thread = threading.Thread(target=handle_client, args=(client,))
             thread.start()
 
 
-def handleMessages(client):
+def handle_client(client):
     while True:
         message = client.recv(BUFSIZE)
-        sendMessage(message, client)
+        broadcast(message, client)
 
 
-def sendMessage(message, sender):
+def broadcast(message, sender):
     for client in clients:
         if client != sender:
             client.sendall(message)
