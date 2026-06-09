@@ -7,16 +7,18 @@ def server(host, port):
         s.bind((host, port))
         s.listen()
         print(f"Servidor TCP escutando em {host}:{port}...")
-        conn, addr = s.accept()
-        with conn:
-            print(f"Conectado por {addr}")
-            while True:
-                data = conn.recv(1024)
-                if not data:
-                    break
-                print(f"Recebido: {data.decode()}")
-                data2 = b"Ola, Cliente!"
-                conn.sendall(data2)
+
+        while True:
+            conn, addr = s.accept()
+            with conn:
+                print(f"Conectado por {addr}")
+                while True:
+                    data = conn.recv(1024)
+                    if not data:
+                        break
+                    print(f"Recebido: {data.decode()}")
+                    data2 = b"Ola, Cliente!"
+                    conn.sendall(data2)
 
 
 if __name__ == "__main__":

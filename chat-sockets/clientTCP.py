@@ -5,9 +5,12 @@ import argparse
 def client(host, port):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((host, port))
-        s.sendall(b"Hello, servidor TCP!")
-        data = s.recv(1024)
-    print(f"Resposta do servidor: {data.decode()}")
+
+        while True:
+            message = input("Mensagem: ")
+            s.sendall(message.encode())
+            data = s.recv(1024)
+            print(f"Resposta do servidor: {data.decode()}")
 
 
 if __name__ == "__main__":
