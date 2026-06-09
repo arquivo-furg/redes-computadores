@@ -1,7 +1,7 @@
 import socket
 import argparse
 import threading
-import tkinter
+import tkinter as tk
 from functools import partial
 
 # Referências
@@ -16,19 +16,17 @@ def main(host, port):
         except:
             return print(f"Não foi possível conectar-se a {host}:{port}.")
 
-        entry_field = tkinter.Entry(window, textvariable=input)
-        entry_field.bind("<Return>", partial(send_message, client))
-        entry_field.pack()
-        send_button = tkinter.Button(
-            window, text="Enviar", command=partial(send_message, client)
-        )
-        send_button.pack()
+        field = tk.Entry(window, textvariable=input)
+        field.bind("<Return>", partial(send_message, client))
+        field.pack()
+        send = tk.Button(window, text="Enviar", command=partial(send_message, client))
+        send.pack()
 
         window.protocol("WM_DELETE_WINDOW", partial(on_closing, client))
 
         threading.Thread(target=recv_messages, args=(client,)).start()
 
-        tkinter.mainloop()
+        tk.mainloop()
 
 
 def recv_messages(client):
@@ -40,7 +38,7 @@ def recv_messages(client):
                 close(client)
                 break
 
-            messages.insert(tkinter.END, message)
+            messages.insert(tk.END, message)
         except OSError:
             break
 
@@ -61,21 +59,19 @@ def on_closing(client, event=None):
     send_message(client)
 
 
-window = tkinter.Tk()
+window = tk.Tk()
 window.title("Chat")
 
-messages_frame = tkinter.Frame(window)
+messages_frame = tk.Frame(window)
 messages_frame.pack()
 
-input = tkinter.StringVar()
+input = tk.StringVar()
 
-scrollbar = tkinter.Scrollbar(messages_frame)
-scrollbar.pack(side=tkinter.RIGHT, fill=tkinter.Y)
+scrollbar = tk.Scrollbar(messages_frame)
+scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
-messages = tkinter.Listbox(
-    messages_frame, height=20, width=75, yscrollcommand=scrollbar.set
-)
-messages.pack(side=tkinter.LEFT, fill=tkinter.BOTH)
+messages = tk.Listbox(messages_frame, height=20, width=75, yscrollcommand=scrollbar.set)
+messages.pack(side=tk.LEFT, fill=tk.BOTH)
 messages.pack()
 
 
