@@ -50,7 +50,7 @@ scrollbar = tkinter.Scrollbar(messages_frame)
 scrollbar.pack(side=tkinter.RIGHT, fill=tkinter.Y)
 
 messages = tkinter.Listbox(
-    messages_frame, height=15, width=50, yscrollcommand=scrollbar.set
+    messages_frame, height=20, width=75, yscrollcommand=scrollbar.set
 )
 messages.pack(side=tkinter.LEFT, fill=tkinter.BOTH)
 messages.pack()
