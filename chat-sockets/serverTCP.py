@@ -15,14 +15,11 @@ def main(host, port):
 
         while True:
             client, addr = server.accept()
+            clients.append(client)
+            print(f"Conectado por {addr}")
 
-            with client:
-                clients.append(client)
-                print(f"Conectado por {addr}")
-
-                thread = threading.Thread(target=handleMessages, args=(client,))
-
-                thread.start()
+            thread = threading.Thread(target=handleMessages, args=(client,))
+            thread.start()
 
 
 def handleMessages(client):
