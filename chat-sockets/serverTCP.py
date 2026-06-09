@@ -75,7 +75,7 @@ def get_username(client):
 def add_user(client, username):
     clients[client] = username
 
-    greet = f"<SERVIDOR> Olá {username}! Você conectou-se com sucesso! Para sair, digite /quit ou feche a janela."
+    greet = f"<SERVIDOR> Olá {username}! Para sair, digite /quit ou feche a janela."
     client.sendall(greet.encode())
 
     message = f"<SERVIDOR> {username} conectou-se ao chat."
