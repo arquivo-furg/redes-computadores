@@ -1,5 +1,6 @@
 import argparse
 import threading
+import re
 from socket import socket, AF_INET, SOCK_STREAM, gethostname, gethostbyname
 from constants import *
 
@@ -68,8 +69,8 @@ def get_username(client: socket):
         handle_command(CMD.QUIT, client)
         return None
 
-    while username.startswith("/"):
-        message = f"<SERVIDOR> Username inválido. Tente novamente:"
+    while re.fullmatch(r"[A-Za-z]*[0-9]*", username) is None:
+        message = f"<SERVIDOR> Username inválido. Utilize apenas letras e números."
         client.sendall(message.encode())
         username = client.recv(BUFSIZE).decode()
 
