@@ -71,6 +71,11 @@ def get_username(client: socket):
     if username == "/quit":
         return username
 
+    while username.startswith("/"):
+        message = f"<SERVIDOR> Username inválido. Tente novamente:"
+        client.sendall(message.encode())
+        username = client.recv(BUFSIZE).decode()
+
     add_user(client, username)
 
     return username
