@@ -37,6 +37,7 @@ def main(host: str, port: int):
 def handle_client(client: socket, addr):
     username = get_username(client)
 
+    # O username é None no caso específico do comando /quit, em outras situações é um break que para o while True
     while username != None:
         message = client.recv(BUFSIZE).decode()
 
@@ -44,16 +45,22 @@ def handle_client(client: socket, addr):
             handle_commands(CMD.QUIT, client)
             break
 
+        # Processa a mensagem para possível comando, recebendo a mensage, destinatários e outras vars
+        # resultantes do processamento
         data, clients, *rest = handle_commands(message, client)
 
         message = f"{username}: {message}"
 
+        # Essa variável que vem a mais é o nome do grupo, usado para prefixar na mensagem quando existem
         if len(rest) == 1:
             (groupname,) = rest
             message = f"{groupname}/{message}"
 
+        # Envia a mensagem em definitivo prefixando grupo (se tiver) e o usuário para os destinatários
         broadcast(message.encode(), clients=clients)
 
+        # Mensagens retornadas dos comandos processados, em sua maioria apenas textos interndos para o usuário
+        # informando o processamento do seu comando
         if data is not None:
             broadcast(data.encode(), clients=clients)
 
@@ -61,29 +68,36 @@ def handle_client(client: socket, addr):
 
 
 def broadcast(message: bytes, clients: list[socket], sender: socket = None):
+    # Itera em cada cliente e envia uma mensagem para cada, se for especificado um sender, ele deixa de
+    # enviar para ele para evitar mensagens repetidas
     for client in clients:
         if client != sender:
             client.sendall(message)
 
 
 def get_username(client: socket):
+    # Estabelece uma breve conversa com o cliente para capturar um username único
     client.sendall(b"SERVIDOR: Bem-vindo ao chat. Insira um username para continuar:")
     username = client.recv(BUFSIZE).decode().lower()
 
+    # Valida unicidade do user
     while username in USERS:
         message = f"SERVIDOR: Username {username} em uso. Tente novamente:"
         client.sendall(message.encode())
         username = client.recv(BUFSIZE).decode().lower()
 
+    # Caso o usuário tente fechar a guia nessa etapa, aceita o comando e encerra a conexão
     if username == CMD.QUIT:
         handle_commands(CMD.QUIT, client)
         return None
 
+    # Nega qualquer possível comando e caracteres especiais como nome de usuário
     while re.fullmatch(r"[A-Za-z]*[0-9]*", username) is None:
         message = f"SERVIDOR: Username inválido. Utilize apenas letras e números."
         client.sendall(message.encode())
         username = client.recv(BUFSIZE).decode()
 
+    # Cria registros do usuário nas vars CLIENTS e USERS
     add_user(client, username)
 
     return username
