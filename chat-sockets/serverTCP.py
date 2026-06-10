@@ -45,9 +45,14 @@ def handle_client(client: socket, addr):
             handle_commands(CMD.QUIT, client)
             break
 
-        data, clients = handle_commands(message, client)
+        data, clients, *rest = handle_commands(message, client)
 
         message = f"{username}: {message}"
+
+        if len(rest) == 1:
+            (groupname,) = rest
+            message = f"{groupname}/{message}"
+
         broadcast(message.encode(), clients=clients)
 
         if data is not None:
@@ -64,12 +69,12 @@ def broadcast(message: bytes, clients: list[socket], sender: socket = None):
 
 def get_username(client: socket):
     client.sendall(b"SERVIDOR: Bem-vindo ao chat. Insira um username para continuar:")
-    username = client.recv(BUFSIZE).decode()
+    username = client.recv(BUFSIZE).decode().lower()
 
     while username in USERS:
         message = f"SERVIDOR: Username {username} em uso. Tente novamente:"
         client.sendall(message.encode())
-        username = client.recv(BUFSIZE).decode()
+        username = client.recv(BUFSIZE).decode().lower()
 
     if username == CMD.QUIT:
         handle_commands(CMD.QUIT, client)
@@ -153,6 +158,7 @@ def handle_commands(message: str, client: socket):
             return None, [client]
 
         groupname, *usernames = rest
+        groupname = groupname.upper()
         if len(usernames) == 0:
             if groupname in GROUPS:
                 if client in GROUPS[groupname]:
@@ -185,7 +191,7 @@ def handle_commands(message: str, client: socket):
 
     if client in GROUP:
         groupname = GROUP[client]
-        return None, GROUPS[groupname]
+        return None, GROUPS[groupname], groupname
 
     return None, [client]
 
