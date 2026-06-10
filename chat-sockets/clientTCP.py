@@ -1,7 +1,6 @@
 import argparse
 import threading
 import tkinter as tk
-from tkinter import messagebox
 from socket import socket, AF_INET, SOCK_STREAM
 from functools import partial
 from constants import *
@@ -72,7 +71,8 @@ def on_closing(client: socket, event=None):
 
 def handle_command(command: str, client: socket | None = None, event=None):
     if command == CMD.HELP:
-        messagebox.showinfo("Ajuda", HELP_TEXT)
+        for cmd in HELP_TEXT:
+            messages.insert(tk.END, cmd)
 
     if command == CMD.CLEAR:
         messages.delete(0, tk.END)
