@@ -104,12 +104,15 @@ def get_username(client: socket):
 
 
 def add_user(client: socket, username: str):
+    # Adiciona entradas do usuário e seu socket nas variáveis globais de controle
     CLIENTS[client] = username
     USERS[username] = client
 
+    # Manda pequena mensagem de boas-vindas com a indicação do comando de ajuda
     greet = f"SERVIDOR: Olá {username}! Digite /help para obter a lista de comandos."
     client.sendall(greet.encode())
 
+    # Avias globalmente que um novo usuário conectou-se ao servidor de chat
     message = f"SERVIDOR: {username} conectou-se ao chat."
     broadcast(message.encode(), clients=CLIENTS, sender=client)
 
@@ -117,20 +120,23 @@ def add_user(client: socket, username: str):
 def rem_user(client: socket):
     username = CLIENTS[client]
 
+    # Remove as entradas padrão do usuário na lista de clientes conectados
     del CLIENTS[client]
     del USERS[username]
 
     if client in PRIVATE:
         del PRIVATE[client]
-
+    # Verifica a existência de um chat privado ou grupo definido para conversa e tira o registro
     if client in GROUP:
         del GROUP[client]
 
+    # Itera sobre todos os grupos que o usuário participava e faz a desvinculação
     if client in USER_GROUPS:
         for group in USER_GROUPS[client]:
             GROUPS[group].remove(client)
         del USER_GROUPS[client]
 
+    # Aviso global de desconexão
     message = f"SERVIDOR: {username} deixou o chat."
     broadcast(message.encode(), clients=CLIENTS)
 
