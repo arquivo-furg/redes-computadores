@@ -8,9 +8,11 @@ from constants import *
 def main(host: str, port: int):
     hostname = gethostname()
     hostaddr = gethostbyname(hostname)
+    # Caputura o endereço IPV4 da máquiana e expõe para os clientes poderem se conectar
 
     with socket(AF_INET, SOCK_STREAM) as server:
         try:
+            # Tentativa de abrir o servidor
             server.bind((host, port))
             server.listen()
             print(f"Servidor TCP escutando localmente em {host}:{port}...")
@@ -18,13 +20,15 @@ def main(host: str, port: int):
         except:
             return print(f"Não foi possível iniciar o servidor em {host}:{port}.")
 
+        # Permanentemente escuta por conexões de novos usuários
         while True:
             try:
                 client, addr = server.accept()
-                print("%s:%s concetou-se ao servidor." % addr)
-
+                print("%s:%s conectou-se ao servidor." % addr)
+                # Inicia uma thread nova para cada cliente conectado, lidando com suas infos separadamente
                 threading.Thread(target=handle_client, args=(client, addr)).start()
             except KeyboardInterrupt:
+                # Encerra a conexão com um Ctrl + C no terminal (apenas Linux)
                 print("\nEncerrando o servidor de chat...")
                 break
     print("Servidor encerrado.")
@@ -193,18 +197,30 @@ def handle_commands(message: str, client: socket):
     return None, [client]
 
 
+# Dicionário dos clientes conectados que recebe a variável socket do cliente e retorna seu username
 CLIENTS: dict[socket, str] = {}
+
+# Dicionário que inverte a lóica e guarda o socket dos usuários concectados a partir do user
 USERS: dict[str, socket] = {}
+
+# Guarda, para cada conexão ativa o servidor, um dicionário contendo o chat privado para qual o usuário
+# está mandando mensagens, se estiver conectado a um grupou ou globalmente, a entrada fica vazia
 PRIVATE: dict[socket, socket] = {}
+
+# Guarda, para cada conexão ativa, o nome do grupo que está conversando, se estiver
 GROUP: dict[socket, str] = {}
+
+# Dado o nome único de um grupo, guarda a lista de clientes (usuários) que fazem parte dele
 GROUPS: dict[str, set[socket]] = {}
+
+# Dado todos os usuários ativos, para cada um deles guarda uma lista com o nome dos grupos que fazem parte
 USER_GROUPS: dict[socket, set[str]] = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--host", type=str, default=HOST)
     parser.add_argument("-p", "--port", type=int, default=PORT)
-
+    # Caputa o host e a porta através de flags no arquivo executado e repassada para a função
     args = parser.parse_args()
 
     main(**vars(args))
