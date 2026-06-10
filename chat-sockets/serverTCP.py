@@ -44,7 +44,7 @@ def handle_client(client: socket, addr):
             handle_command(CMD.QUIT, client)
             break
 
-        message = f"<{username}> {message}"
+        message = f"{username}: {message}"
         broadcast(message.encode())
 
     print("%s:%s desconcetou-se do servidor." % addr)
