@@ -102,6 +102,17 @@ def rem_user(client: socket):
     del CLIENTS[client]
     del USERS[username]
 
+    if client in PRIVATE:
+        del PRIVATE[client]
+
+    if client in GROUP:
+        del GROUP[client]
+
+    if client in USER_GROUPS:
+        for group in USER_GROUPS[client]:
+            GROUPS[group].remove(client)
+        del USER_GROUPS[client]
+
     message = f"SERVIDOR: {username} deixou o chat."
     broadcast(message.encode(), clients=CLIENTS)
 
