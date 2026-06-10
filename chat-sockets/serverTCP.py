@@ -184,35 +184,46 @@ def handle_commands(message: str, client: socket):
                 return f"Você está agora conectado a {username}", [client]
 
     if command == CMD.GROUP:
+        # O comando funciona com /group (apenas listar) /group + nome (conectar ao seu grupo)
+        # E /group + nome + user1 + user2 + user3 (cria o grupo com aquele nome e add os usuários listados)
         if len(rest) == 0:
             if client in USER_GROUPS:
+                # Itera sobre os grupos que o usuário participa, se tiver
                 return ", ".join(USER_GROUPS[client]), [client]
             return None, [client]
 
+        # Caso detecte um segundo argumento passado (groupname)
+        # Verifica se o grupo existe, se o usuário faz parte dele, e então se conecta ao grupo
         groupname, *usernames = rest
+        # Grupos foram definidos apenas como maiúsculo, users como minúsculo
         groupname = groupname.upper()
         if len(usernames) == 0:
             if groupname in GROUPS:
                 if client in GROUPS[groupname]:
                     GROUP[client] = groupname
-
+                    # Muda o envio de mensagens para o grupo selecionado
                     if client in PRIVATE:
                         del PRIVATE[client]
 
                     return f"Você está agora conectado ao grupo {groupname}", [client]
-            return None, [client]
+            return None, [client]  # Não foram encontrados grupos
 
+        # A partir daqui foram passados 3+ parâmetros, iniciando a criação do grupo
         if groupname in GROUPS:
             return "Um grupo com o mesmo nome já foi criado, tente novamente", [client]
 
+        # Cria uma entrada do grupo na lista de grupos existentes
         GROUPS[groupname] = set()
 
+        # Insere o próprio usuário na criação do grupo
         usernames.append(CLIENTS[client])
         for username in usernames:
             if username in USERS:
+                # Pra cada usuário, pega seu socket da conexão e coloca na lista de users daquele grupo
                 userclient = USERS[username]
                 GROUPS[groupname].add(userclient)
 
+                # Cria ou atualiza os grupos que o usuário participa na variável USER_GROUPS
                 if userclient not in USER_GROUPS:
                     USER_GROUPS[userclient] = set()
                 USER_GROUPS[userclient].add(groupname)
@@ -221,7 +232,8 @@ def handle_commands(message: str, client: socket):
 
     if client in PRIVATE:
         return None, [PRIVATE[client], client]
-
+    # Detecta a existência do usuário no chat privado ou no grupo e determina se irá receber apenas
+    # o user e o próprio sender ou se não todos do grupo, fazendo e troca entre chat privado e grupo
     if client in GROUP:
         groupname = GROUP[client]
         return None, GROUPS[groupname], groupname
