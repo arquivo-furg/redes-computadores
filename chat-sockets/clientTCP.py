@@ -5,11 +5,6 @@ from socket import socket, AF_INET, SOCK_STREAM
 from functools import partial
 from constants import *
 
-# Referências
-# https://www.dio.me/articles/faca-o-seu-proprio-chat-utilizando-python-atraves-de-sockets
-# https://medium.com/swlh/lets-write-a-chat-app-in-python-f6783a9ac170
-# https://yangtavaresblog.wordpress.com/2017/12/09/a-simple-chat-with-sockets-using-python/
-
 
 def main(host: str, port: int):
     with socket(AF_INET, SOCK_STREAM) as client:
