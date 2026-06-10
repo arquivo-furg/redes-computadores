@@ -38,14 +38,13 @@ def handle_client(client: socket, addr):
 
     while True:
         if username == CMD.QUIT:
-            client.sendall(CMD.QUIT.encode())
-            client.close()
+            handle_command(CMD.QUIT, client)
             break
 
         data = client.recv(BUFSIZE).decode()
 
         if data == CMD.QUIT:
-            rem_user(client, username)
+            handle_command(CMD.QUIT, client)
             break
 
         message = f"<{username}> {data}"
@@ -92,14 +91,22 @@ def add_user(client: socket, username: str):
     broadcast(message.encode(), client)
 
 
-def rem_user(client: socket, username: str):
-    client.sendall(CMD.QUIT.encode())
-    client.close()
+def rem_user(client: socket):
+    username = clients[client]
 
     del clients[client]
 
     message = f"<SERVIDOR> {username} deixou o chat."
     broadcast(message.encode())
+
+
+def handle_command(command: str, client: socket):
+    if command.startswith(CMD.QUIT):
+        client.sendall(CMD.QUIT.encode())
+        client.close()
+
+        if client in clients:
+            rem_user(client)
 
 
 clients: dict[socket, str] = {}
