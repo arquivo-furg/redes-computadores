@@ -99,7 +99,7 @@ def rem_user(client: socket):
 
 
 def handle_command(command: str, client: socket):
-    if command.startswith(CMD.QUIT):
+    if command == CMD.QUIT:
         client.sendall(CMD.QUIT.encode())
         client.close()
 
