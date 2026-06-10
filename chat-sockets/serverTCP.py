@@ -52,7 +52,7 @@ def handle_client(client: socket, addr):
 
 
 def broadcast(message: bytes, sender: socket | None = None):
-    for client in clients:
+    for client in CLIENTS:
         if client != sender:
             client.sendall(message)
 
@@ -61,7 +61,7 @@ def get_username(client: socket):
     client.sendall(b"SERVIDOR: Bem-vindo ao chat. Insira um username para continuar:")
     username = client.recv(BUFSIZE).decode()
 
-    while username in clients.values():
+    while username in USERS:
         message = f"SERVIDOR: Username {username} em uso. Tente novamente:"
         client.sendall(message.encode())
         username = client.recv(BUFSIZE).decode()
@@ -81,7 +81,8 @@ def get_username(client: socket):
 
 
 def add_user(client: socket, username: str):
-    clients[client] = username
+    CLIENTS[client] = username
+    USERS[username] = client
 
     greet = f"SERVIDOR: Olá {username}! Digite /help para obter a lista de comandos."
     client.sendall(greet.encode())
@@ -91,9 +92,10 @@ def add_user(client: socket, username: str):
 
 
 def rem_user(client: socket):
-    username = clients[client]
+    username = CLIENTS[client]
 
-    del clients[client]
+    del CLIENTS[client]
+    del USERS[username]
 
     message = f"SERVIDOR: {username} deixou o chat."
     broadcast(message.encode())
@@ -104,11 +106,11 @@ def handle_command(command: str, client: socket):
         client.sendall(CMD.QUIT.encode())
         client.close()
 
-        if client in clients:
+        if client in CLIENTS:
             rem_user(client)
 
-
-clients: dict[socket, str] = {}
+CLIENTS: dict[socket, str] = {}
+USERS: dict[str, socket] = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
