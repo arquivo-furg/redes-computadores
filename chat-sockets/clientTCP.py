@@ -16,7 +16,7 @@ def main(host: str, port: int):
         except:
             return print(f"Não foi possível conectar-se a {host}:{port}.")
 
-        field = tk.Entry(window, textvariable=input)
+        field = tk.Entry(window, textvariable=input, width=50)
         field.bind("<Return>", partial(send_message, client))
         field.pack()
         send = tk.Button(window, text="Enviar", command=partial(send_message, client))
@@ -72,7 +72,6 @@ scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
 messages = tk.Listbox(messages_frame, height=20, width=75, yscrollcommand=scrollbar.set)
 messages.pack(side=tk.LEFT, fill=tk.BOTH)
-messages.pack()
 
 
 HOST = "127.0.0.1"
