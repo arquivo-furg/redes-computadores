@@ -108,8 +108,10 @@ def rem_user(client: socket):
 
 def handle_commands(message: str, client: socket):
     command, *rest = message.split(" ")
-    if command not in vars(CMD).values():
-        return "Comando inválido", [client]
+
+    if command.startswith("/"):
+        if command not in vars(CMD).values():
+            return "Comando inválido", [client]
 
     if command == CMD.QUIT:
         client.sendall(CMD.QUIT.encode())
@@ -160,10 +162,12 @@ def handle_commands(message: str, client: socket):
             if username in USERS:
                 userclient = USERS[username]
                 GROUPS[groupname].add(userclient)
-                if userclient in USER_GROUPS:
-                    USER_GROUPS[userclient].add(groupname)
 
-        return f"Grupo {groupname} criado com uscesso!"
+                if userclient not in USER_GROUPS:
+                    USER_GROUPS[userclient] = set()
+                USER_GROUPS[userclient].add(groupname)
+
+        return f"Grupo {groupname} criado com uscesso!", [client]
 
     if client in PRIVATE:
         return None, [PRIVATE[client]]
