@@ -9,7 +9,7 @@ class CMD:
     CLEAR = "/clear"
     PRIVATE = "/private"
     GROUP = "/group"
-    GLOBAL = "/global"
+    # GLOBAL = "/global"
 
 
 HELP_TEXT = [
@@ -21,5 +21,5 @@ HELP_TEXT = [
     f"{CMD.GROUP} - Listar seus grupos ativos",
     f"{CMD.GROUP} [gropuname] - Iniciar conversa com um de seus grupos",
     f"{CMD.GROUP} [gropuname] [username1] [...] - Criar grupo com usuários",
-    f"{CMD.GLOBAL} - Convesar com todos usuários conectados",
+    # f"{CMD.GLOBAL} - Convesar com todos usuários conectados",
 ]

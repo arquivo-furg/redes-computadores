@@ -48,20 +48,16 @@ def handle_client(client: socket, addr):
         data, clients = handle_commands(message, client)
 
         message = f"{username}: {message}"
+        broadcast(message.encode(), clients=clients)
 
         if data is not None:
-            broadcast(message.encode(), clients=clients)
             broadcast(data.encode(), clients=clients)
-            continue
-
-        broadcast(message.encode())
 
     print("%s:%s desconcetou-se do servidor." % addr)
 
 
-def broadcast(message: bytes, sender: socket | None = None, clients=None):
-    receivers = clients if clients else CLIENTS
-    for client in receivers:
+def broadcast(message: bytes, clients: list[socket], sender: socket = None):
+    for client in clients:
         if client != sender:
             client.sendall(message)
 
@@ -97,7 +93,7 @@ def add_user(client: socket, username: str):
     client.sendall(greet.encode())
 
     message = f"SERVIDOR: {username} conectou-se ao chat."
-    broadcast(message.encode(), client)
+    broadcast(message.encode(), clients=CLIENTS, sender=client)
 
 
 def rem_user(client: socket):
@@ -107,10 +103,12 @@ def rem_user(client: socket):
     del USERS[username]
 
     message = f"SERVIDOR: {username} deixou o chat."
-    broadcast(message.encode())
+    broadcast(message.encode(), clients=CLIENTS)
 
 
 def handle_commands(message: str, client: socket):
+    command = ""
+
     if message.startswith("/"):
         command, *rest = message.split(" ")
         if command not in vars(CMD).values():
@@ -126,6 +124,8 @@ def handle_commands(message: str, client: socket):
     if command == CMD.PRIVATE:
         if len(rest) == 0:
             return ", ".join(USERS.keys()), [client]
+
+    return None, [client]
 
 
 CLIENTS: dict[socket, str] = {}
