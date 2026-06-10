@@ -57,11 +57,11 @@ def broadcast(message: bytes, sender: socket | None = None):
 
 
 def get_username(client: socket):
-    client.sendall(b"<SERVIDOR> Bem-vindo ao chat. Insira um username para continuar:")
+    client.sendall(b"SERVIDOR: Bem-vindo ao chat. Insira um username para continuar:")
     username = client.recv(BUFSIZE).decode()
 
     while username in clients.values():
-        message = f"<SERVIDOR> Username {username} em uso. Tente novamente:"
+        message = f"SERVIDOR: Username {username} em uso. Tente novamente:"
         client.sendall(message.encode())
         username = client.recv(BUFSIZE).decode()
 
@@ -70,7 +70,7 @@ def get_username(client: socket):
         return None
 
     while re.fullmatch(r"[A-Za-z]*[0-9]*", username) is None:
-        message = f"<SERVIDOR> Username inválido. Utilize apenas letras e números."
+        message = f"SERVIDOR: Username inválido. Utilize apenas letras e números."
         client.sendall(message.encode())
         username = client.recv(BUFSIZE).decode()
 
@@ -82,10 +82,10 @@ def get_username(client: socket):
 def add_user(client: socket, username: str):
     clients[client] = username
 
-    greet = f"<SERVIDOR> Olá {username}! Digite /help para obter a lista de comandos."
+    greet = f"SERVIDOR: Olá {username}! Digite /help para obter a lista de comandos."
     client.sendall(greet.encode())
 
-    message = f"<SERVIDOR> {username} conectou-se ao chat."
+    message = f"SERVIDOR: {username} conectou-se ao chat."
     broadcast(message.encode(), client)
 
 
@@ -94,7 +94,7 @@ def rem_user(client: socket):
 
     del clients[client]
 
-    message = f"<SERVIDOR> {username} deixou o chat."
+    message = f"SERVIDOR: {username} deixou o chat."
     broadcast(message.encode())
 
 
