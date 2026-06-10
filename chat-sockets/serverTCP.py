@@ -138,7 +138,8 @@ def handle_commands(message: str, client: socket):
 
     if command == CMD.PRIVATE:
         if len(rest) == 0:
-            return ", ".join(USERS.keys()), [client]
+            users = [CLIENTS[c] for c in CLIENTS if c != client]
+            return ", ".join(users), [client]
 
         username, *_ = rest
         if username in USERS:
