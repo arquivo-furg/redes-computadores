@@ -30,50 +30,60 @@ def main(host: str, port: int):
         tk.mainloop()  # Inicia a GUI
 
 
+# Em uma thread separada, fica iterando sob a função de leitura de mensagem e realizando operações
 def recv_messages(client: socket):
     while True:
         try:
+            # A função recv "pausa" o código e evita um loop infinito, só continua quando receber uma mensagem
             message = client.recv(BUFSIZE).decode()
 
+            # Encerra o cliente caso tenha recebido um comando /quit
             if message == CMD.QUIT:
                 close(client)
                 break
 
-            messages.insert(tk.END, message)
-        except OSError:
+            messages.insert(tk.END, message)  # Insere a mensagem recebida na listbox
+        except OSError:  # Caputar possíveis erros de desconexão do cliente
             break
 
 
+# A variável event é necessária para tkinter, apesar de não explicitamente usada
 def send_message(client: socket, event=None):
+    # Caputa o valor digitado no input, envia ao servidor e limpa o texto
     message = input.get()
     input.set("")
 
     if message == CMD.HELP:
         handle_command(CMD.HELP)
         return
-
+    # Comandos locais: exibem o texto de ajuda e limpam a lista
     if message == CMD.CLEAR:
         handle_command(CMD.CLEAR)
         return
 
+    # Faz o envio da mensagem codificada para o servidor
     client.sendall(message.encode())
 
 
+# Encerra a conexão e a janela da GUI em definitivo
 def close(client: socket):
     client.close()
     window.quit()
 
 
+# Ao fechar a janela, envia um comando de /quit para o servidor que realiza a desconexão
 def on_closing(client: socket, event=None):
     input.set(CMD.QUIT)
     send_message(client)
 
 
-def handle_command(command: str, client: socket | None = None, event=None):
+def handle_command(command: str, event=None):
+    # Itera as linhas do texto de ajuda e exibe para o usuário
     if command == CMD.HELP:
         for cmd in HELP_TEXT:
             messages.insert(tk.END, cmd)
 
+    # Limpa a listbox de mensagens
     if command == CMD.CLEAR:
         messages.delete(0, tk.END)
 
