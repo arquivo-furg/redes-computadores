@@ -107,12 +107,9 @@ def rem_user(client: socket):
 
 
 def handle_commands(message: str, client: socket):
-    command = ""
-
-    if message.startswith("/"):
-        command, *rest = message.split(" ")
-        if command not in vars(CMD).values():
-            return "Comando inválido", [client]
+    command, *rest = message.split(" ")
+    if command not in vars(CMD).values():
+        return "Comando inválido", [client]
 
     if command == CMD.QUIT:
         client.sendall(CMD.QUIT.encode())
@@ -125,15 +122,55 @@ def handle_commands(message: str, client: socket):
         if len(rest) == 0:
             return ", ".join(USERS.keys()), [client]
 
-        username, *rest = rest
+        username, *_ = rest
         if username in USERS:
             private = USERS[username]
             if client != private:
                 PRIVATE[client] = private
+
+                if client in GROUP:
+                    del GROUP[client]
+
                 return f"Você está agora conectado a {username}", [client]
+
+    if command == CMD.GROUP:
+        if len(rest) == 0:
+            if client in USER_GROUPS:
+                return ", ".join(USER_GROUPS[client]), [client]
+            return None, [client]
+
+        groupname, *usernames = rest
+        if len(usernames) == 0:
+            if groupname in GROUPS:
+                if client in GROUPS[groupname]:
+                    GROUP[client] = groupname
+
+                    if client in PRIVATE:
+                        del PRIVATE[client]
+
+                    return f"Você está agora conectado ao grupo {groupname}", [client]
+            return None, [client]
+
+        if groupname in GROUPS:
+            return "Um grupo com o mesmo nome já foi criado, tente novamente", [client]
+
+        GROUPS[groupname] = set()
+
+        for username in usernames:
+            if username in USERS:
+                userclient = USERS[username]
+                GROUPS[groupname].add(userclient)
+                if userclient in USER_GROUPS:
+                    USER_GROUPS[userclient].add(groupname)
+
+        return f"Grupo {groupname} criado com uscesso!"
 
     if client in PRIVATE:
         return None, [PRIVATE[client]]
+
+    if client in GROUP:
+        groupname = GROUP[client]
+        return None, GROUPS[groupname]
 
     return None, [client]
 
@@ -141,6 +178,9 @@ def handle_commands(message: str, client: socket):
 CLIENTS: dict[socket, str] = {}
 USERS: dict[str, socket] = {}
 PRIVATE: dict[socket, socket] = {}
+GROUP: dict[socket, str] = {}
+GROUPS: dict[str, set[socket]] = {}
+USER_GROUPS: dict[socket, set[str]] = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
