@@ -1,6 +1,7 @@
 import argparse
 import threading
 from socket import socket, AF_INET, SOCK_STREAM, gethostname, gethostbyname
+from constants import *
 
 # Referências
 # https://www.dio.me/articles/faca-o-seu-proprio-chat-utilizando-python-atraves-de-sockets
@@ -36,14 +37,14 @@ def handle_client(client: socket, addr):
     username = get_username(client)
 
     while True:
-        if username == "/quit":
-            client.sendall(b"/quit")
+        if username == CMD.QUIT:
+            client.sendall(CMD.QUIT.encode())
             client.close()
             break
 
         data = client.recv(BUFSIZE).decode()
 
-        if data == "/quit":
+        if data == CMD.QUIT:
             rem_user(client, username)
             break
 
@@ -68,7 +69,7 @@ def get_username(client: socket):
         client.sendall(message.encode())
         username = client.recv(BUFSIZE).decode()
 
-    if username == "/quit":
+    if username == CMD.QUIT:
         return username
 
     while username.startswith("/"):
@@ -92,7 +93,7 @@ def add_user(client: socket, username: str):
 
 
 def rem_user(client: socket, username: str):
-    client.sendall(b"/quit")
+    client.sendall(CMD.QUIT.encode())
     client.close()
 
     del clients[client]
@@ -102,10 +103,6 @@ def rem_user(client: socket, username: str):
 
 
 clients: dict[socket, str] = {}
-
-HOST = "127.0.0.1"
-PORT = 12345
-BUFSIZE = 2048
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

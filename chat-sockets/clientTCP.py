@@ -3,6 +3,7 @@ import threading
 import tkinter as tk
 from socket import socket, AF_INET, SOCK_STREAM
 from functools import partial
+from constants import *
 
 # Referências
 # https://www.dio.me/articles/faca-o-seu-proprio-chat-utilizando-python-atraves-de-sockets
@@ -34,7 +35,7 @@ def recv_messages(client: socket):
         try:
             message = client.recv(BUFSIZE).decode()
 
-            if message == "/quit":
+            if message == CMD.QUIT:
                 close(client)
                 break
 
@@ -55,7 +56,7 @@ def close(client: socket):
 
 
 def on_closing(client: socket, event=None):
-    input.set("/quit")
+    input.set(CMD.QUIT)
     send_message(client)
 
 
@@ -73,10 +74,6 @@ scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 messages = tk.Listbox(messages_frame, height=20, width=75, yscrollcommand=scrollbar.set)
 messages.pack(side=tk.LEFT, fill=tk.BOTH)
 
-
-HOST = "127.0.0.1"
-PORT = 12345
-BUFSIZE = 2048
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
