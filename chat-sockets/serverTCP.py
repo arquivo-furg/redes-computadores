@@ -45,13 +45,13 @@ def handle_client(client: socket, addr):
             handle_commands(CMD.QUIT, client)
             break
 
-        data = handle_commands(message, client)
+        data, clients = handle_commands(message, client)
 
         message = f"{username}: {message}"
 
         if data is not None:
-            broadcast(message.encode(), clients=[client])
-            broadcast(data.encode(), clients=[client])
+            broadcast(message.encode(), clients=clients)
+            broadcast(data.encode(), clients=clients)
             continue
 
         broadcast(message.encode())
@@ -114,7 +114,7 @@ def handle_commands(message: str, client: socket):
     if message.startswith("/"):
         command, *rest = message.split(" ")
         if command not in vars(CMD).values():
-            return "Comando inválido"
+            return "Comando inválido", [client]
 
     if command == CMD.QUIT:
         client.sendall(CMD.QUIT.encode())
@@ -125,7 +125,7 @@ def handle_commands(message: str, client: socket):
 
     if command == CMD.PRIVATE:
         if len(rest) == 0:
-            return ", ".join(USERS.keys())
+            return ", ".join(USERS.keys()), [client]
 
 
 CLIENTS: dict[socket, str] = {}
