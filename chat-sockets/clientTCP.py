@@ -1,6 +1,7 @@
 import argparse
 import threading
 import tkinter as tk
+from tkinter import messagebox
 from socket import socket, AF_INET, SOCK_STREAM
 from functools import partial
 from constants import *
@@ -47,6 +48,15 @@ def recv_messages(client: socket):
 def send_message(client: socket, event=None):
     message = input.get()
     input.set("")
+
+    if message == CMD.HELP:
+        handle_command(CMD.HELP)
+        return
+
+    if message == CMD.CLEAR:
+        handle_command(CMD.CLEAR)
+        return
+
     client.sendall(message.encode())
 
 
@@ -58,6 +68,14 @@ def close(client: socket):
 def on_closing(client: socket, event=None):
     input.set(CMD.QUIT)
     send_message(client)
+
+
+def handle_command(command: str, client: socket | None = None, event=None):
+    if command == CMD.HELP:
+        messagebox.showinfo("Ajuda", HELP_TEXT)
+
+    if command == CMD.CLEAR:
+        messages.delete(0, tk.END)
 
 
 window = tk.Tk()

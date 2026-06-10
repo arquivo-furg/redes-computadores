@@ -82,7 +82,7 @@ def get_username(client: socket):
 def add_user(client: socket, username: str):
     clients[client] = username
 
-    greet = f"<SERVIDOR> Olá {username}! Para sair, digite /quit ou feche a janela."
+    greet = f"<SERVIDOR> Olá {username}! Digite /help para obter a lista de comandos."
     client.sendall(greet.encode())
 
     message = f"<SERVIDOR> {username} conectou-se ao chat."
