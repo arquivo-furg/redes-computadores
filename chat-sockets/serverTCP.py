@@ -125,11 +125,22 @@ def handle_commands(message: str, client: socket):
         if len(rest) == 0:
             return ", ".join(USERS.keys()), [client]
 
+        username, *rest = rest
+        if username in USERS:
+            private = USERS[username]
+            if client != private:
+                PRIVATE[client] = private
+                return f"Você está agora conectado a {username}", [client]
+
+    if client in PRIVATE:
+        return None, [PRIVATE[client]]
+
     return None, [client]
 
 
 CLIENTS: dict[socket, str] = {}
 USERS: dict[str, socket] = {}
+PRIVATE: dict[socket, socket] = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
