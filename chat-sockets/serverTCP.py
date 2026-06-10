@@ -42,17 +42,26 @@ def handle_client(client: socket, addr):
         message = client.recv(BUFSIZE).decode()
 
         if message == CMD.QUIT:
-            handle_command(CMD.QUIT, client)
+            handle_commands(CMD.QUIT, client)
             break
 
+        data = handle_commands(message, client)
+
         message = f"{username}: {message}"
+
+        if data is not None:
+            broadcast(message.encode(), clients=[client])
+            broadcast(data.encode(), clients=[client])
+            continue
+
         broadcast(message.encode())
 
     print("%s:%s desconcetou-se do servidor." % addr)
 
 
-def broadcast(message: bytes, sender: socket | None = None):
-    for client in CLIENTS:
+def broadcast(message: bytes, sender: socket | None = None, clients=None):
+    receivers = clients if clients else CLIENTS
+    for client in receivers:
         if client != sender:
             client.sendall(message)
 
@@ -67,7 +76,7 @@ def get_username(client: socket):
         username = client.recv(BUFSIZE).decode()
 
     if username == CMD.QUIT:
-        handle_command(CMD.QUIT, client)
+        handle_commands(CMD.QUIT, client)
         return None
 
     while re.fullmatch(r"[A-Za-z]*[0-9]*", username) is None:
@@ -101,13 +110,23 @@ def rem_user(client: socket):
     broadcast(message.encode())
 
 
-def handle_command(command: str, client: socket):
+def handle_commands(message: str, client: socket):
+    if message.startswith("/"):
+        command, *rest = message.split(" ")
+        if command not in vars(CMD).values():
+            return "Comando inválido"
+
     if command == CMD.QUIT:
         client.sendall(CMD.QUIT.encode())
         client.close()
 
         if client in CLIENTS:
             rem_user(client)
+
+    if command == CMD.PRIVATE:
+        if len(rest) == 0:
+            return ", ".join(USERS.keys())
+
 
 CLIENTS: dict[socket, str] = {}
 USERS: dict[str, socket] = {}
