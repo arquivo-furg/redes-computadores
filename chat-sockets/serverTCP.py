@@ -176,6 +176,7 @@ def handle_commands(message: str, client: socket):
 
         GROUPS[groupname] = set()
 
+        usernames.append(CLIENTS[client])
         for username in usernames:
             if username in USERS:
                 userclient = USERS[username]
