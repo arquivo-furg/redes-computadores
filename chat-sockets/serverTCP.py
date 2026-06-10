@@ -142,30 +142,42 @@ def rem_user(client: socket):
 
 
 def handle_commands(message: str, client: socket):
-    command, *rest = message.split(" ")
+    # Lida com os possíveis comandos vindos das mensagens recebidas
+    command, *rest = message.split(" ")  # Isola a primeira palavra
 
     if command.startswith("/"):
+        # Verifica se inicia com /, que define o comando, então verifica se é válido
         if command not in vars(CMD).values():
             return "Comando inválido", [client]
+            # [client] indica que apenas o usuário vai ler essa mensagem, é enviado internamente para ele
 
     if command == CMD.QUIT:
         client.sendall(CMD.QUIT.encode())
         client.close()
-
+        # Encerra todo o programa e remove cada usuário a listagem global de usuários
         if client in CLIENTS:
             rem_user(client)
 
     if command == CMD.PRIVATE:
+        # O formato do comando é /private [usuario]
+        # Cada verificação de len(rest) verifica se o usuário passou só o /private
+        # Ou se passou /private + username, pois em cada modo a função opera diferente
+
         if len(rest) == 0:
+            # Para apenas /private, ele pega todos os usuários ativos (menos ele mesmo) e lista internamente
             users = [CLIENTS[c] for c in CLIENTS if c != client]
             return ", ".join(users), [client]
 
+        # Se o len de rest for > 0, quer dizer que foi passado um segundo ou mais argumentos (os demais descartados)
         username, *_ = rest
         if username in USERS:
+            # Verifica se o username existe no sistema e se não é o próprio usuário
             private = USERS[username]
             if client != private:
+                # Adiciona o usuário privado para recebimento direto das mensagens
                 PRIVATE[client] = private
 
+                # Troca o envio de mensagens do grupo para o usuário individual
                 if client in GROUP:
                     del GROUP[client]
 
