@@ -36,18 +36,14 @@ def main(host: str, port: int):
 def handle_client(client: socket, addr):
     username = get_username(client)
 
-    while True:
-        if username == CMD.QUIT:
+    while username != None:
+        message = client.recv(BUFSIZE).decode()
+
+        if message == CMD.QUIT:
             handle_command(CMD.QUIT, client)
             break
 
-        data = client.recv(BUFSIZE).decode()
-
-        if data == CMD.QUIT:
-            handle_command(CMD.QUIT, client)
-            break
-
-        message = f"<{username}> {data}"
+        message = f"<{username}> {message}"
         broadcast(message.encode())
 
     print("%s:%s desconcetou-se do servidor." % addr)
@@ -69,7 +65,8 @@ def get_username(client: socket):
         username = client.recv(BUFSIZE).decode()
 
     if username == CMD.QUIT:
-        return username
+        handle_command(CMD.QUIT, client)
+        return None
 
     while username.startswith("/"):
         message = f"<SERVIDOR> Username inválido. Tente novamente:"
