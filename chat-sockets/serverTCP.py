@@ -189,7 +189,7 @@ def handle_commands(message: str, client: socket):
         return f"Grupo {groupname} criado com uscesso!", [client]
 
     if client in PRIVATE:
-        return None, [PRIVATE[client]]
+        return None, [PRIVATE[client], client]
 
     if client in GROUP:
         groupname = GROUP[client]
