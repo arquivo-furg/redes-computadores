@@ -103,7 +103,7 @@ extrair_rtt_e_saltos <- function(registro) {
   rtt_minimo <- NA_real_
   numero_saltos <- NA_integer_
 
-  # O hop 255 é um padrão do RIPE Atlas para indicar que o pacote chegou ao destino
+  # O hop 255 é o padrão do RIPE Atlas indicando que chegou ao destino
   if (!is.null(ultimo_hop$hop) && ultimo_hop$hop == 255) {
     # Pega os RTTs válidos deste último salto
     rtts <- sapply(ultimo_hop$result, function(p) {
@@ -190,7 +190,7 @@ todos_registros <- do.call(rbind, lapply(lista_medicoes, function(m) {
 }))
 
 # Adiciona informações de país e continente a cada registro
-dados_completos <- todos_registros %>%
+dados_completos <- todos_registros |>
   mutate(
     sigla_pais = probe_pais[probe_id],
     nome_pais = pais_nome[sigla_pais],
@@ -200,7 +200,7 @@ dados_completos <- todos_registros %>%
     ),
     rotulo_ip = paste0("IPv", versao_ip),
     hora_rodada = as.POSIXct(trunc(momento_medicao, units = "hours"))
-  ) %>%
+  ) |>
   filter(!is.na(sigla_pais))
 
 cat("\nTotal de registros carregados:", nrow(dados_completos), "\n")
@@ -210,8 +210,8 @@ cat(
 )
 
 # Analisa a taxa de sucesso (quantas medições chegaram ao destino)
-resumo_chegada <- dados_completos %>%
-  group_by(destino, rotulo_ip) %>%
+resumo_chegada <- dados_completos |>
+  group_by(destino, rotulo_ip) |>
   summarise(
     total_medicoes = n(),
     medicoes_chegaram = sum(chegou_destino),
@@ -222,8 +222,8 @@ resumo_chegada <- dados_completos %>%
 cat("=== Resumo de chegada ao destino ===\n")
 print(resumo_chegada)
 
-# Filtra para analisar latência e saltos apenas quando o pacote chegou ao destino
-dados_chegaram <- dados_completos %>%
+# Filtra latência e saltos apenas quando o pacote chegou ao destino
+dados_chegaram <- dados_completos |>
   filter(chegou_destino, !is.na(rtt_minimo_ms), !is.na(numero_saltos))
 
 
@@ -248,8 +248,8 @@ cores_ipv4_ipv6 <- c("IPv4" = "#2196F3", "IPv6" = "#FF5722")
 
 
 # 1. Latência ao longo do tempo (mediana)
-latencia_hora <- dados_chegaram %>%
-  group_by(destino, rotulo_ip, hora_rodada) %>%
+latencia_hora <- dados_chegaram |>
+  group_by(destino, rotulo_ip, hora_rodada) |>
   summarise(rtt_mediano = median(rtt_minimo_ms), .groups = "drop")
 
 ggplot(latencia_hora, aes(
@@ -274,7 +274,7 @@ salvar_grafico("1_latencia_serie_temporal", largura = 11, altura = 9)
 
 
 # 2. Distribuição da latência: IPv4 vs IPv6
-dados_sem_outliers <- dados_chegaram %>%
+dados_sem_outliers <- dados_chegaram |>
   filter(rtt_minimo_ms < quantile(rtt_minimo_ms, 0.99))
 
 ggplot(dados_sem_outliers, aes(
@@ -298,8 +298,8 @@ salvar_grafico("2_latencia_ipv4_vs_ipv6")
 
 
 # 3. Latência por país
-latencia_pais <- dados_chegaram %>%
-  group_by(destino, nome_pais, continente, rotulo_ip) %>%
+latencia_pais <- dados_chegaram |>
+  group_by(destino, nome_pais, continente, rotulo_ip) |>
   summarise(rtt_mediano = median(rtt_minimo_ms), .groups = "drop")
 
 ggplot(latencia_pais, aes(
@@ -344,8 +344,8 @@ salvar_grafico("4_latencia_por_continente", largura = 13, altura = 8)
 
 
 # 5. Saltos ao longo do tempo (mediana)
-saltos_hora <- dados_chegaram %>%
-  group_by(destino, rotulo_ip, hora_rodada) %>%
+saltos_hora <- dados_chegaram |>
+  group_by(destino, rotulo_ip, hora_rodada) |>
   summarise(saltos_medianos = median(numero_saltos), .groups = "drop")
 
 ggplot(saltos_hora, aes(
@@ -390,8 +390,8 @@ salvar_grafico("6_saltos_ipv4_vs_ipv6")
 
 
 # 7. Saltos por país
-saltos_pais <- dados_chegaram %>%
-  group_by(destino, nome_pais, continente, rotulo_ip) %>%
+saltos_pais <- dados_chegaram |>
+  group_by(destino, nome_pais, continente, rotulo_ip) |>
   summarise(saltos_medianos = median(numero_saltos), .groups = "drop")
 
 ggplot(saltos_pais, aes(
@@ -436,8 +436,8 @@ salvar_grafico("8_saltos_por_continente", largura = 13, altura = 8)
 
 
 # 9. Gráfico da taxa de chegada ao destino
-taxa_chegada <- dados_completos %>%
-  group_by(destino, rotulo_ip) %>%
+taxa_chegada <- dados_completos |>
+  group_by(destino, rotulo_ip) |>
   summarise(percentual = 100 * mean(chegou_destino), .groups = "drop")
 
 ggplot(taxa_chegada, aes(
@@ -468,8 +468,8 @@ salvar_grafico("9_taxa_chegada_destino")
 
 # Resumo Estatístico
 
-tabela_resumo <- dados_chegaram %>%
-  group_by(destino, rotulo_ip) %>%
+tabela_resumo <- dados_chegaram |>
+  group_by(destino, rotulo_ip) |>
   summarise(
     total_medicoes = n(),
     rtt_mediano = round(median(rtt_minimo_ms), 2),
