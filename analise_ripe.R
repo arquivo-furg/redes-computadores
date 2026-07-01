@@ -247,14 +247,14 @@ salvar_grafico <- function(nome_arquivo, largura = 10, altura = 6) {
 cores_ipv4_ipv6 <- c("IPv4" = "#2196F3", "IPv6" = "#FF5722")
 
 
-# 1. Latência ao longo do tempo (mediana)
+# 1. Latência ao longo do tempo (média)
 latencia_hora <- dados_chegaram |>
   group_by(destino, rotulo_ip, hora_rodada) |>
-  summarise(rtt_mediano = median(rtt_minimo_ms), .groups = "drop")
+  summarise(rtt_medio = mean(rtt_minimo_ms), .groups = "drop")
 
 ggplot(latencia_hora, aes(
   x = hora_rodada,
-  y = rtt_mediano,
+  y = rtt_medio,
   color = rotulo_ip
 )) +
   geom_line() +
@@ -263,9 +263,9 @@ ggplot(latencia_hora, aes(
   scale_color_manual(values = cores_ipv4_ipv6) +
   labs(
     title = "Latência ao Longo do Tempo",
-    subtitle = "Mediana do RTT mínimo por rodada horária",
+    subtitle = "Média do RTT mínimo por rodada horária",
     x = "Horário (UTC)",
-    y = "RTT mínimo (ms)",
+    y = "RTT médio (ms)",
     color = NULL
   ) +
   tema_graficos
@@ -273,23 +273,23 @@ ggplot(latencia_hora, aes(
 salvar_grafico("1_latencia_serie_temporal", largura = 11, altura = 9)
 
 
-# 2. Distribuição da latência: IPv4 vs IPv6
-dados_sem_outliers <- dados_chegaram |>
-  filter(rtt_minimo_ms < quantile(rtt_minimo_ms, 0.99))
+# 2. Comparação da latência média: IPv4 vs IPv6
+latencia_ipv4_v6 <- dados_chegaram |>
+  group_by(destino, rotulo_ip) |>
+  summarise(rtt_medio = mean(rtt_minimo_ms), .groups = "drop")
 
-ggplot(dados_sem_outliers, aes(
+ggplot(latencia_ipv4_v6, aes(
   x = rotulo_ip,
-  y = rtt_minimo_ms,
+  y = rtt_medio,
   fill = rotulo_ip
 )) +
-  geom_boxplot() +
+  geom_col() +
   facet_wrap(~destino) +
   scale_fill_manual(values = cores_ipv4_ipv6) +
   labs(
-    title = "Distribuição de Latência: IPv4 vs IPv6",
-    subtitle = "Outliers acima do percentil 99 foram removidos",
+    title = "Latência Média: IPv4 vs IPv6",
     x = NULL,
-    y = "RTT mínimo (ms)",
+    y = "RTT médio (ms)",
     fill = NULL
   ) +
   tema_graficos
@@ -300,20 +300,20 @@ salvar_grafico("2_latencia_ipv4_vs_ipv6")
 # 3. Latência por país
 latencia_pais <- dados_chegaram |>
   group_by(destino, nome_pais, continente, rotulo_ip) |>
-  summarise(rtt_mediano = median(rtt_minimo_ms), .groups = "drop")
+  summarise(rtt_medio = mean(rtt_minimo_ms), .groups = "drop")
 
 ggplot(latencia_pais, aes(
-  x = reorder(nome_pais, rtt_mediano),
-  y = rtt_mediano,
+  x = reorder(nome_pais, rtt_medio),
+  y = rtt_medio,
   fill = continente
 )) +
   geom_col() +
   facet_grid(rotulo_ip ~ destino) +
   scale_fill_manual(values = cores_continentes) +
   labs(
-    title = "Latência Mediana por País",
+    title = "Latência Média por País",
     x = NULL,
-    y = "RTT mediano (ms)",
+    y = "RTT médio (ms)",
     fill = "Continente"
   ) +
   tema_graficos +
@@ -322,19 +322,23 @@ ggplot(latencia_pais, aes(
 salvar_grafico("3_latencia_por_pais", largura = 14, altura = 8)
 
 
-# 4. Latência por continente
-ggplot(dados_sem_outliers, aes(
+# 4. Latência média por continente
+latencia_continente <- dados_chegaram |>
+  group_by(destino, continente, rotulo_ip) |>
+  summarise(rtt_medio = mean(rtt_minimo_ms), .groups = "drop")
+
+ggplot(latencia_continente, aes(
   x = continente,
-  y = rtt_minimo_ms,
+  y = rtt_medio,
   fill = continente
 )) +
-  geom_boxplot() +
+  geom_col() +
   facet_grid(rotulo_ip ~ destino) +
   scale_fill_manual(values = cores_continentes) +
   labs(
-    title = "Distribuição de Latência por Continente",
+    title = "Latência Média por Continente",
     x = NULL,
-    y = "RTT mínimo (ms)",
+    y = "RTT médio (ms)",
     fill = "Continente"
   ) +
   tema_graficos +
@@ -343,14 +347,14 @@ ggplot(dados_sem_outliers, aes(
 salvar_grafico("4_latencia_por_continente", largura = 13, altura = 8)
 
 
-# 5. Saltos ao longo do tempo (mediana)
+# 5. Saltos ao longo do tempo (média)
 saltos_hora <- dados_chegaram |>
   group_by(destino, rotulo_ip, hora_rodada) |>
-  summarise(saltos_medianos = median(numero_saltos), .groups = "drop")
+  summarise(saltos_medios = mean(numero_saltos), .groups = "drop")
 
 ggplot(saltos_hora, aes(
   x = hora_rodada,
-  y = saltos_medianos,
+  y = saltos_medios,
   color = rotulo_ip
 )) +
   geom_line() +
@@ -358,10 +362,10 @@ ggplot(saltos_hora, aes(
   facet_wrap(~destino, ncol = 1, scales = "free_y") +
   scale_color_manual(values = cores_ipv4_ipv6) +
   labs(
-    title = "Número de Saltos ao Longo do Tempo",
-    subtitle = "Mediana por rodada horária",
+    title = "Número Médio de Saltos ao Longo do Tempo",
+    subtitle = "Média por rodada horária",
     x = "Horário (UTC)",
-    y = "Número de saltos",
+    y = "Número médio de saltos",
     color = NULL
   ) +
   tema_graficos
@@ -369,19 +373,23 @@ ggplot(saltos_hora, aes(
 salvar_grafico("5_saltos_serie_temporal", largura = 11, altura = 9)
 
 
-# 6. Distribuição do número de saltos: IPv4 vs IPv6
-ggplot(dados_chegaram, aes(
+# 6. Comparação do número médio de saltos: IPv4 vs IPv6
+saltos_ipv4_v6 <- dados_chegaram |>
+  group_by(destino, rotulo_ip) |>
+  summarise(saltos_medios = mean(numero_saltos), .groups = "drop")
+
+ggplot(saltos_ipv4_v6, aes(
   x = rotulo_ip,
-  y = numero_saltos,
+  y = saltos_medios,
   fill = rotulo_ip
 )) +
-  geom_boxplot() +
+  geom_col() +
   facet_wrap(~destino) +
   scale_fill_manual(values = cores_ipv4_ipv6) +
   labs(
-    title = "Distribuição do Número de Saltos: IPv4 vs IPv6",
+    title = "Número Médio de Saltos: IPv4 vs IPv6",
     x = NULL,
-    y = "Número de saltos",
+    y = "Número médio de saltos",
     fill = NULL
   ) +
   tema_graficos
@@ -392,20 +400,20 @@ salvar_grafico("6_saltos_ipv4_vs_ipv6")
 # 7. Saltos por país
 saltos_pais <- dados_chegaram |>
   group_by(destino, nome_pais, continente, rotulo_ip) |>
-  summarise(saltos_medianos = median(numero_saltos), .groups = "drop")
+  summarise(saltos_medios = mean(numero_saltos), .groups = "drop")
 
 ggplot(saltos_pais, aes(
-  x = reorder(nome_pais, saltos_medianos),
-  y = saltos_medianos,
+  x = reorder(nome_pais, saltos_medios),
+  y = saltos_medios,
   fill = continente
 )) +
   geom_col() +
   facet_grid(rotulo_ip ~ destino) +
   scale_fill_manual(values = cores_continentes) +
   labs(
-    title = "Número de Saltos Mediano por País",
+    title = "Número Médio de Saltos por País",
     x = NULL,
-    y = "Número de saltos (mediana)",
+    y = "Número médio de saltos",
     fill = "Continente"
   ) +
   tema_graficos +
@@ -414,19 +422,23 @@ ggplot(saltos_pais, aes(
 salvar_grafico("7_saltos_por_pais", largura = 14, altura = 8)
 
 
-# 8. Saltos por continente
-ggplot(dados_chegaram, aes(
+# 8. Saltos médios por continente
+saltos_continente <- dados_chegaram |>
+  group_by(destino, continente, rotulo_ip) |>
+  summarise(saltos_medios = mean(numero_saltos), .groups = "drop")
+
+ggplot(saltos_continente, aes(
   x = continente,
-  y = numero_saltos,
+  y = saltos_medios,
   fill = continente
 )) +
-  geom_boxplot() +
+  geom_col() +
   facet_grid(rotulo_ip ~ destino) +
   scale_fill_manual(values = cores_continentes) +
   labs(
-    title = "Distribuição do Número de Saltos por Continente",
+    title = "Número Médio de Saltos por Continente",
     x = NULL,
-    y = "Número de saltos",
+    y = "Número médio de saltos",
     fill = "Continente"
   ) +
   tema_graficos +
@@ -472,10 +484,10 @@ tabela_resumo <- dados_chegaram |>
   group_by(destino, rotulo_ip) |>
   summarise(
     total_medicoes = n(),
-    rtt_mediano = round(median(rtt_minimo_ms), 2),
     rtt_medio = round(mean(rtt_minimo_ms), 2),
+    rtt_mediano = round(median(rtt_minimo_ms), 2),
     rtt_desvio = round(sd(rtt_minimo_ms), 2),
-    saltos_mediano = round(median(numero_saltos), 1),
+    saltos_medios = round(mean(numero_saltos), 1),
     .groups = "drop"
   )
 
