@@ -35,10 +35,10 @@ dir.create(pasta_graficos, showWarnings = FALSE)
 lista_medicoes <- list(
   list(arquivo = file.path(pasta_dados, "youtube_ipv4.json"), destino = "YouTube Music", versao_ip = 4),
   list(arquivo = file.path(pasta_dados, "youtube_ipv6.json"), destino = "YouTube Music", versao_ip = 6),
-  list(arquivo = file.path(pasta_dados, "apple_ipv4.json"),   destino = "Apple Music",   versao_ip = 4),
-  list(arquivo = file.path(pasta_dados, "apple_ipv6.json"),   destino = "Apple Music",   versao_ip = 6),
-  list(arquivo = file.path(pasta_dados, "spotify_ipv4.json"), destino = "Spotify",       versao_ip = 4),
-  list(arquivo = file.path(pasta_dados, "spotify_ipv6.json"), destino = "Spotify",       versao_ip = 6)
+  list(arquivo = file.path(pasta_dados, "apple_ipv4.json"), destino = "Apple Music", versao_ip = 4),
+  list(arquivo = file.path(pasta_dados, "apple_ipv6.json"), destino = "Apple Music", versao_ip = 6),
+  list(arquivo = file.path(pasta_dados, "spotify_ipv4.json"), destino = "Spotify", versao_ip = 4),
+  list(arquivo = file.path(pasta_dados, "spotify_ipv6.json"), destino = "Spotify", versao_ip = 6)
 )
 
 # =============================================================================
@@ -109,7 +109,6 @@ cores_continentes <- c(
 # Se o hop 255 existe, pegamos o RTT mínimo dos pacotes desse hop.
 # Se não existe, procuramos o último hop que teve resposta válida.
 extrair_rtt_e_saltos <- function(registro) {
-
   lista_hops <- registro$result
 
   # Se não tem hops, retorna nulo
@@ -125,7 +124,6 @@ extrair_rtt_e_saltos <- function(registro) {
 
   # Verifica se o último hop é o 255 (destino respondeu)
   if (!is.null(ultimo_hop$hop) && ultimo_hop$hop == 255) {
-
     # Extrai os RTTs dos pacotes enviados ao destino
     rtts_pacotes <- sapply(ultimo_hop$result, function(pacote) {
       pacote$rtt %ou% NA_real_
@@ -142,7 +140,6 @@ extrair_rtt_e_saltos <- function(registro) {
     } else {
       numero_saltos <- 1L
     }
-
   } else {
     # Destino não respondeu: procura de trás pra frente o último hop com RTT válido
     for (i in rev(seq_along(lista_hops))) {
@@ -165,7 +162,6 @@ extrair_rtt_e_saltos <- function(registro) {
 
 # Função que lê um arquivo JSON de medição e retorna um data.frame com os dados extraídos.
 ler_arquivo_medicao <- function(caminho_arquivo, nome_destino, versao_ip) {
-
   cat("Lendo arquivo:", basename(caminho_arquivo), "\n")
 
   # Lê o JSON inteiro (cada elemento é um registro de traceroute)
@@ -173,7 +169,6 @@ ler_arquivo_medicao <- function(caminho_arquivo, nome_destino, versao_ip) {
 
   # Processa cada registro individualmente
   lista_linhas <- lapply(dados_brutos, function(registro) {
-
     resultado <- extrair_rtt_e_saltos(registro)
 
     # Se não conseguiu extrair nada, pula esse registro
@@ -230,8 +225,10 @@ dados_completos <- todos_registros %>%
   filter(!is.na(sigla_pais))
 
 cat("\nTotal de registros carregados:", nrow(dados_completos), "\n")
-cat("Período:", format(min(dados_completos$momento_medicao)),
-    "a", format(max(dados_completos$momento_medicao)), "\n\n")
+cat(
+  "Período:", format(min(dados_completos$momento_medicao)),
+  "a", format(max(dados_completos$momento_medicao)), "\n\n"
+)
 
 # =============================================================================
 # 5. RESUMO DE CHEGADA AO DESTINO
@@ -240,8 +237,8 @@ cat("Período:", format(min(dados_completos$momento_medicao)),
 resumo_chegada <- dados_completos %>%
   group_by(destino, rotulo_ip) %>%
   summarise(
-    total_medicoes     = n(),
-    medicoes_chegaram  = sum(chegou_destino),
+    total_medicoes = n(),
+    medicoes_chegaram = sum(chegou_destino),
     percentual_chegada = round(100 * mean(chegou_destino), 1),
     .groups = "drop"
   )
@@ -291,14 +288,16 @@ latencia_hora <- dados_chegaram %>%
   group_by(destino, rotulo_ip, hora_rodada) %>%
   summarise(rtt_mediano = median(rtt_minimo_ms), .groups = "drop")
 
-ggplot(latencia_hora, aes(x = hora_rodada, y = rtt_mediano,
-                          color = rotulo_ip)) +
+ggplot(latencia_hora, aes(
+  x = hora_rodada, y = rtt_mediano,
+  color = rotulo_ip
+)) +
   geom_line() +
   geom_point(size = 1) +
   facet_wrap(~destino, ncol = 1, scales = "free_y") +
   scale_color_manual(values = cores_ipv4_ipv6) +
   labs(
-    title    = "Latência ao Longo do Tempo",
+    title = "Latência ao Longo do Tempo",
     subtitle = "Mediana do RTT mínimo por rodada horária",
     x = "Horário (UTC)", y = "RTT mínimo (ms)", color = NULL
   ) +
@@ -312,13 +311,15 @@ salvar_grafico("1_latencia_serie_temporal", largura = 11, altura = 9)
 dados_sem_outliers <- dados_chegaram %>%
   filter(rtt_minimo_ms < quantile(rtt_minimo_ms, 0.99))
 
-ggplot(dados_sem_outliers,
-       aes(x = rotulo_ip, y = rtt_minimo_ms, fill = rotulo_ip)) +
+ggplot(
+  dados_sem_outliers,
+  aes(x = rotulo_ip, y = rtt_minimo_ms, fill = rotulo_ip)
+) +
   geom_boxplot() +
   facet_wrap(~destino) +
   scale_fill_manual(values = cores_ipv4_ipv6) +
   labs(
-    title    = "Distribuição de Latência: IPv4 vs IPv6",
+    title = "Distribuição de Latência: IPv4 vs IPv6",
     subtitle = "Outliers acima do percentil 99 foram removidos",
     x = NULL, y = "RTT mínimo (ms)", fill = NULL
   ) +
@@ -332,9 +333,13 @@ latencia_pais <- dados_chegaram %>%
   group_by(destino, nome_pais, continente, rotulo_ip) %>%
   summarise(rtt_mediano = median(rtt_minimo_ms), .groups = "drop")
 
-ggplot(latencia_pais,
-       aes(x = reorder(nome_pais, rtt_mediano), y = rtt_mediano,
-           fill = continente)) +
+ggplot(
+  latencia_pais,
+  aes(
+    x = reorder(nome_pais, rtt_mediano), y = rtt_mediano,
+    fill = continente
+  )
+) +
   geom_col() +
   facet_grid(rotulo_ip ~ destino) +
   scale_fill_manual(values = cores_continentes) +
@@ -349,8 +354,10 @@ salvar_grafico("3_latencia_por_pais", largura = 14, altura = 8)
 
 # ── 8.4 Latência por continente ──────────────────────────────────────────────
 
-ggplot(dados_sem_outliers,
-       aes(x = continente, y = rtt_minimo_ms, fill = continente)) +
+ggplot(
+  dados_sem_outliers,
+  aes(x = continente, y = rtt_minimo_ms, fill = continente)
+) +
   geom_boxplot() +
   facet_grid(rotulo_ip ~ destino) +
   scale_fill_manual(values = cores_continentes) +
@@ -374,14 +381,16 @@ saltos_hora <- dados_chegaram %>%
   group_by(destino, rotulo_ip, hora_rodada) %>%
   summarise(saltos_medianos = median(numero_saltos), .groups = "drop")
 
-ggplot(saltos_hora, aes(x = hora_rodada, y = saltos_medianos,
-                        color = rotulo_ip)) +
+ggplot(saltos_hora, aes(
+  x = hora_rodada, y = saltos_medianos,
+  color = rotulo_ip
+)) +
   geom_line() +
   geom_point(size = 1) +
   facet_wrap(~destino, ncol = 1, scales = "free_y") +
   scale_color_manual(values = cores_ipv4_ipv6) +
   labs(
-    title    = "Número de Saltos ao Longo do Tempo",
+    title = "Número de Saltos ao Longo do Tempo",
     subtitle = "Mediana por rodada horária",
     x = "Horário (UTC)", y = "Número de saltos", color = NULL
   ) +
@@ -391,8 +400,10 @@ salvar_grafico("5_saltos_serie_temporal", largura = 11, altura = 9)
 
 # ── 9.2 Comparação IPv4 vs IPv6 — boxplot de saltos por destino ──────────────
 
-ggplot(dados_chegaram,
-       aes(x = rotulo_ip, y = numero_saltos, fill = rotulo_ip)) +
+ggplot(
+  dados_chegaram,
+  aes(x = rotulo_ip, y = numero_saltos, fill = rotulo_ip)
+) +
   geom_boxplot() +
   facet_wrap(~destino) +
   scale_fill_manual(values = cores_ipv4_ipv6) +
@@ -410,9 +421,13 @@ saltos_pais <- dados_chegaram %>%
   group_by(destino, nome_pais, continente, rotulo_ip) %>%
   summarise(saltos_medianos = median(numero_saltos), .groups = "drop")
 
-ggplot(saltos_pais,
-       aes(x = reorder(nome_pais, saltos_medianos), y = saltos_medianos,
-           fill = continente)) +
+ggplot(
+  saltos_pais,
+  aes(
+    x = reorder(nome_pais, saltos_medianos), y = saltos_medianos,
+    fill = continente
+  )
+) +
   geom_col() +
   facet_grid(rotulo_ip ~ destino) +
   scale_fill_manual(values = cores_continentes) +
@@ -427,8 +442,10 @@ salvar_grafico("7_saltos_por_pais", largura = 14, altura = 8)
 
 # ── 9.4 Saltos por continente ────────────────────────────────────────────────
 
-ggplot(dados_chegaram,
-       aes(x = continente, y = numero_saltos, fill = continente)) +
+ggplot(
+  dados_chegaram,
+  aes(x = continente, y = numero_saltos, fill = continente)
+) +
   geom_boxplot() +
   facet_grid(rotulo_ip ~ destino) +
   scale_fill_manual(values = cores_continentes) +
@@ -450,15 +467,17 @@ taxa_chegada <- dados_completos %>%
   group_by(destino, rotulo_ip) %>%
   summarise(percentual = 100 * mean(chegou_destino), .groups = "drop")
 
-ggplot(taxa_chegada,
-       aes(x = rotulo_ip, y = percentual, fill = rotulo_ip)) +
+ggplot(
+  taxa_chegada,
+  aes(x = rotulo_ip, y = percentual, fill = rotulo_ip)
+) +
   geom_col() +
   geom_text(aes(label = sprintf("%.1f%%", percentual)), vjust = -0.4, size = 3.5) +
   facet_wrap(~destino) +
   scale_fill_manual(values = cores_ipv4_ipv6) +
   scale_y_continuous(limits = c(0, 105)) +
   labs(
-    title    = "Taxa de Medições que Chegaram ao Destino",
+    title = "Taxa de Medições que Chegaram ao Destino",
     subtitle = "Percentual de traceroutes com resposta do destino",
     x = NULL, y = "% de chegada", fill = NULL
   ) +
@@ -474,11 +493,11 @@ salvar_grafico("9_taxa_chegada_destino")
 tabela_resumo <- dados_chegaram %>%
   group_by(destino, rotulo_ip) %>%
   summarise(
-    total_medicoes     = n(),
-    rtt_mediano_ms     = round(median(rtt_minimo_ms), 2),
-    rtt_medio_ms       = round(mean(rtt_minimo_ms), 2),
-    rtt_desvio_padrao  = round(sd(rtt_minimo_ms), 2),
-    saltos_medianos    = round(median(numero_saltos), 1),
+    total_medicoes = n(),
+    rtt_mediano_ms = round(median(rtt_minimo_ms), 2),
+    rtt_medio_ms = round(mean(rtt_minimo_ms), 2),
+    rtt_desvio_padrao = round(sd(rtt_minimo_ms), 2),
+    saltos_medianos = round(median(numero_saltos), 1),
     .groups = "drop"
   )
 
