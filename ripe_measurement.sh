@@ -1,4 +1,17 @@
-curl -H "Authorization: Key RIPE_ATLAS_KEY" \
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+
+if [[ -f "${script_dir}/.env" ]]; then
+  # shellcheck disable=SC1091
+  source "${script_dir}/.env"
+fi
+
+: "${RIPE_ATLAS_KEY:?Set RIPE_ATLAS_KEY in the environment or in .env}"
+
+curl -H "Authorization: Key ${RIPE_ATLAS_KEY}" \
      -H "Content-Type: application/json" \
      -X POST \
      -d '{
